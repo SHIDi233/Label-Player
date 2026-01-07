@@ -132,7 +132,7 @@ onMounted(async()=>{
 
 // 数据驱动-加载视频
 watch(()=>props.data, async(_)=>{
-    alert('video_loading...')
+    // alert('video_loading...')
     console.log('video_loading...', _);
     load();
 })

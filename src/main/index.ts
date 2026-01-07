@@ -1,7 +1,21 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+
+// 处理文件选择请求
+ipcMain.handle('open-file-dialog', async (event, options) => {
+  const result = await dialog.showOpenDialog(options);
+  return result;
+});
+
+// 处理文件夹选择请求
+ipcMain.handle('open-directory-dialog', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory']
+  });
+  return result;
+});
 
 const fluentFfmpeg = require('fluent-ffmpeg');
 const ffprobeStatic = require('ffprobe-static')
@@ -49,6 +63,14 @@ async function get_frame(event, frame_id) {
           resolve(metadata);
       });
   });
+}
+
+async function get_image(event, url) {
+  const fs = require('fs');
+  console.log(url); 
+  var img = fs.readFileSync(url);
+  const base64Image = img.toString('base64');
+  return base64Image;
 }
 
 function createWindow(): void {
@@ -117,6 +139,7 @@ app.whenReady().then(() => {
   // API list
   ipcMain.handle('get_frame', get_frame); // 读取视频帧数
   ipcMain.handle('api_open_json', api_open_json); // 读取json
+  ipcMain.handle('analysis_load_image', get_image);
 
   createWindow()
 

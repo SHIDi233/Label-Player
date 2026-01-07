@@ -36,7 +36,6 @@
                 <div style="margin: auto;" />
             </div>
         </div>
-        <el-button @click="start()">start</el-button>
     </div>
 </template>
 
@@ -101,46 +100,9 @@ const video_process = ref(0.0);
 
 // 全局解锁
 const is_lock = ref(false);
-const now_frame = ref(0);
-const test_frame = ref({});
 
 // 图表限流
 const is_limit_graph=ref(false);
-
-// 可视化数据
-const analysis_data = ref({});
-const summary_data = ref({});
-
-
-const test=()=>{
-    var _canvas = document.getElementById('video_canvas');
-    if(_canvas==null){return};
-    const canvas = document.createElement('canvas');
-    canvas.width=_canvas.clientWidth;
-    canvas.height=_canvas.clientHeight;
-
-    var ctx = canvas.getContext('2d');
-    if(ctx==null){return};
-
-    const video:HTMLVideoElement = document.getElementById('video_render');
-    if(video==null){alert(233);return};
-    // alert(typeof(video));
-
-    ctx.drawImage(video, 0, 0, 512, 512, 0,0,512,512);
-    
-    // 双缓存刷新
-    var _ctx = _canvas.getContext('2d');
-
-    // 清空
-    _ctx.clearRect(0, 0, _canvas.clientWidth, _canvas.clientHeight);
-    _ctx.drawImage(canvas,0,0);
-    
-    video.requestVideoFrameCallback((now, metadata) => {
-        // console.log('frame');
-        test();
-    });
-}
-test();
 
 
 // 定制化API
@@ -155,7 +117,7 @@ const load_imgv=async(data)=>{
     // 视频列表加载
     var video_url = data['video_url'];
     var result_url = data['coco_json'];
-    var result_json = await window['SABAP_project_api'].load_json(result_url);
+    var result_json = await window['video_api'].api_open_json(result_url);
 
     // imgs = [
     //     {
@@ -193,19 +155,16 @@ const load_imgv=async(data)=>{
     console.log('json', g_json.value);
 }
 
-// 加载视频位置
-const load_vidv=()=>{
-
-}
-
 const load_basic=()=>{
-    const seekbar_button = document.getElementById('seekbar_button');
-    const zone = document.getElementById('zone');
-    seekbar_button?.addEventListener('mousedown', drag_start);
-    seekbar_button?.addEventListener('mousemove', drag_process);
-    zone?.addEventListener('mousemove', drag_process);
-    seekbar_button?.addEventListener('mouseup', drag_end);
-    zone?.addEventListener('mouseup', drag_end);
+    // const seekbar_button = document.getElementById('seekbar_button');
+    // const zone = document.getElementById('zone');
+    // seekbar_button?.addEventListener('mousedown', drag_start);
+    // seekbar_button?.addEventListener('mousemove', drag_process);
+    // zone?.addEventListener('mousemove', drag_process);
+    // seekbar_button?.addEventListener('mouseup', drag_end);
+    // zone?.addEventListener('mouseup', drag_end);
+
+    // alert(233);
 }
 
 const ready=async()=>{
@@ -221,6 +180,8 @@ watch(()=>props.data, (newVal)=>{
     if(newVal['coco_json']!=undefined && newVal['video_url']!=undefined){
         load_imgv(newVal);
     }
+
+    load_basic();
 },{deep:true})
 
 watch(()=>props.goto, async(newVal)=>{
@@ -445,46 +406,6 @@ const set_seekbar_button=()=>{
     }
 }
 
-const prepare_line_data=()=>{
-    // const now_name = track_select.value;
-    // var data = analysis_data.value['analysis'][now_name][now_frame.value];
-    // console.log(data);
-    // // 视频帧所需信息（包围框、点信息）
-    // key_points.value=data['points'];
-    // key_position.value = data['position'];
-    // // key_bbox.value = ;
-
-    // let need_list = ['body_curvature','head_angles','tail_angles'];
-    // for(let k=0;k<need_list.length;k++){
-    //     // 图表所需长信息
-    //     var temp = [];
-    //     for(let i=1;i<=g_max_frame.value;i++){
-    //         temp.push(String(i));
-    //     } // 帧数列
-    //     var temp_2 = [];
-    //     for(let i=0;i<now_frame.value;i++){
-    //         temp_2.push(analysis_data.value['analysis'][now_name][String(i)][need_list[k]]);
-    //     } // 数据列
-
-    //     if(need_list[k]=='body_curvature'){
-    //         body_curvature.value['xAxis']['data']=temp;
-    //         body_curvature.value['series'][0]['data']=temp_2;
-    //     }
-    //     if(need_list[k]=='head_angles'){
-    //         head_angles.value['xAxis']['data']=temp;
-    //         head_angles.value['series'][0]['data']=temp_2;
-    //     }
-    //     if(need_list[k]=='tail_angles'){
-    //         tail_angles.value['xAxis']['data']=temp;
-    //         tail_angles.value['series'][0]['data']=temp_2;
-    //     }
-    // }
-    
-}
-
-
-
-
 // 缓存模块，只输入所需帧即可
 const video_cache=async (frame_id)=>{
     let list_num = 5;
@@ -501,7 +422,7 @@ const video_cache=async (frame_id)=>{
             // var src = url_imgs.value+"\\"+video_select.value+"\\"+analysis_data.value['video']['images'][i]['file_name']; 
             var src = images.value[i].url; 
             var image = new Image();
-            image.src = 'data:image/png;base64,' + await window['SABAP_project_api'].analysis_load_image(src);
+            image.src = 'data:image/png;base64,' + await window['video_api'].analysis_load_image(src);
             let isEnd=false;
             image.onload=function(){
                 isEnd=true;
@@ -526,7 +447,7 @@ const video_cache=async (frame_id)=>{
             // var src = url_imgs.value+"\\"+video_select.value+"\\"+analysis_data.value['video']['images'][i]['file_name']; 
             var src = images.value[i].url; 
             var image = new Image();
-            image.src = 'data:image/png;base64,' + await window['SABAP_project_api'].analysis_load_image(src);
+            image.src = 'data:image/png;base64,' + await window['video_api'].analysis_load_image(src);
             let isEnd=false;
             image.onload=function(){
                 isEnd=true;
@@ -550,7 +471,7 @@ const video_cache=async (frame_id)=>{
                 // var src = url_imgs.value+"\\"+video_select.value+"\\"+analysis_data.value['video']['images'][i]['file_name']; 
                 var src = images.value[i].url; 
                 var image = new Image();
-                image.src = 'data:image/png;base64,' + await window['SABAP_project_api'].analysis_load_image(src);
+                image.src = 'data:image/png;base64,' + await window['video_api'].analysis_load_image(src);
                 cache.value[i]={
                     type:1,
                     data:image
@@ -609,42 +530,6 @@ const prepare_video_data=async()=>{
     // 更新值
     selfEmit('update', g_frame_id.value);
     return [x_0, y_0, x_1, y_1, ratio];
-
-    // // bbox准备
-    // let bbox = [];
-    // for(let i=0;i<analysis_data.value['video']['annotations'].length;i++){
-    //     if(analysis_data.value['video']['annotations'][i]['image_id']==now_frame.value){
-    //         let temp = [];
-    //         // bbox
-    //         for(let k=0;k<analysis_data.value['video']['annotations'][i]['bbox'].length;k++){
-    //             temp.push(analysis_data.value['video']['annotations'][i]['bbox'][k]/ratio);
-    //         }
-    //         bbox.push(temp);
-    //     }
-    // }
-    // key_bbox.value = bbox;
-
-    // //关键点准备
-    // let points = [];
-    // for(let i=0;i<analysis_data.value['video']['annotations'].length;i++){
-    //     if(analysis_data.value['video']['annotations'][i]['image_id']==now_frame.value){
-    //         let temp = [];
-    //         // bbox
-    //         for(let k=0;k<analysis_data.value['video']['annotations'][i]['keypoints'].length;k++){
-    //             temp.push(analysis_data.value['video']['annotations'][i]['keypoints'][k]/ratio);
-    //         }
-    //         points.push(temp);
-    //     }
-    // }
-    // key_points.value = points;
-    // // alert(key_points.value);
-
-    
-    // // image.value.src = 'data:image/png;base64,' + await video_cache(now_frame.value);
-    // draw_canvas();
-    // // image.value.onload=function(){
-    // //     // draw_canvas();
-    // // }
 }
 
 // 绘制函数
@@ -698,24 +583,6 @@ const draw_canvas=async()=>{
         }
     }
 
-    // let bbox = key_bbox.value;
-    // ctx.strokeStyle = 'white';
-    // for(let i=0;i<bbox.length;i++){
-    //     ctx.strokeRect(x_0.value+bbox[i][0], y_0.value+bbox[i][1], bbox[i][2], bbox[i][3]);
-    // }
-
-    // // 绘制关键点
-    // ctx.fillStyle='#DC7347';
-    // console.log('key_points', key_points.value);
-    // let kps = key_points.value;
-    // for(let i=0;i<kps.length;i++){
-    //     for(let k=0;k<kps[i].length;k+=3){
-    //         ctx.beginPath();
-    //         ctx.arc(x_0.value+kps[i][k], y_0.value+kps[i][k+1], 2, 0, Math.PI * 100); // x, y 是圆心的坐标，1 是半径，0 和 Math.PI * 2 是起始和结束角度，表示一个完整的圆
-    //         ctx.fill(); // 使用当前的填充样式填充圆形
-    //     }
-    // }
-
     // 双缓存刷新
     var _ctx = _canvas.getContext('2d');
 
@@ -724,84 +591,17 @@ const draw_canvas=async()=>{
     _ctx.drawImage(canvas,0,0);
 }
 
-// onMounted(()=>{
-//     alert(1)
-//     const seekbar_button = document.getElementById('seekbar_button');
-//     const zone = document.getElementById('zone');
-//     seekbar_button?.addEventListener('mousedown', drag_start);
-//     seekbar_button?.addEventListener('mousemove', drag_process);
-//     zone?.addEventListener('mousemove', drag_process);
-//     seekbar_button?.addEventListener('mouseup', drag_end);
-//     zone?.addEventListener('mouseup', drag_end);
-//     start();
-// });
+onMounted(()=>{
+    // 组件初始化
+    const seekbar_button = document.getElementById('seekbar_button');
+    const zone = document.getElementById('zone');
+    seekbar_button?.addEventListener('mousedown', drag_start);
+    seekbar_button?.addEventListener('mousemove', drag_process);
+    zone?.addEventListener('mousemove', drag_process);
+    seekbar_button?.addEventListener('mouseup', drag_end);
+    zone?.addEventListener('mouseup', drag_end);
+});
 
-// onActivated(()=>{
-//     alert(2);
-    
-//     start();
-// });
-
-const start=async()=>{    
-    test();
-    // const ffmpeg = new FFmpeg();
-    // alert(0)
-    // await ffmpeg.load();
-    // alert(1)
-    // const tempFileName = 'temp_frame.png';
-    // const command = `ffmpeg -ss ${2} -i ${'F:\\Space animal behavior analysis platform\\project\\project_test_1\\raw\\B.mp4'} -vf "select=eq(n\,${2})" -frames:v 1 ${tempFileName}`;
-    // await ffmpeg.exec([command]);
-    // alert(2)
-    // const buffer = await ffmpeg.readFile(tempFileName);
-    // const base64 = btoa(String.fromCharCode.apply(null, new Uint8Array(buffer))); // 将buffer转换为Base64字符串
-    // alert(3)
-    // // return base64;
-    
-
-    // var data = await window['SABAP_project_api'].get_frame(0);
-    // var data = base64;
-    //     var _canvas = document.getElementById('video_canvas');
-    // if(_canvas==null){return};
-    // const canvas = document.createElement('canvas');
-    // canvas.width=_canvas.clientWidth;
-    // canvas.height=_canvas.clientHeight;
-
-    // var ctx = canvas.getContext('2d');
-    // if(ctx==null){return};
-
-    // // 绘制帧
-    // // console.log('x',x_0.value,'y',y_0.value,'width',image.value.width, 'height', image.value.height);
-    
-    // if(cache.value[g_frame_id.value].data!=undefined){
-    //     ctx.drawImage(data, 0, 0, 512, 512, 0,0,512,512);
-    //     // ctx.drawImage(cache.value[now_frame.value].data, 0, 0, 512, 512, 0,0,512,512);
-    // }
-    // // // 绘制包围框
-    // let bbox = key_bbox.value;
-    // ctx.strokeStyle = 'white';
-    // for(let i=0;i<bbox.length;i++){
-    //     ctx.strokeRect(x_0.value+bbox[i][0], y_0.value+bbox[i][1], bbox[i][2], bbox[i][3]);
-    // }
-
-    // // 绘制关键点
-    // ctx.fillStyle='#DC7347';
-    // console.log('key_points', key_points.value);
-    // let kps = key_points.value;
-    // for(let i=0;i<kps.length;i++){
-    //     for(let k=0;k<kps[i].length;k+=3){
-    //         ctx.beginPath();
-    //         ctx.arc(x_0.value+kps[i][k], y_0.value+kps[i][k+1], 2, 0, Math.PI * 100); // x, y 是圆心的坐标，1 是半径，0 和 Math.PI * 2 是起始和结束角度，表示一个完整的圆
-    //         ctx.fill(); // 使用当前的填充样式填充圆形
-    //     }
-    // }
-
-    // // 双缓存刷新
-    // var _ctx = _canvas.getContext('2d');
-
-    // // 清空
-    // _ctx.clearRect(0, 0, _canvas.clientWidth, _canvas.clientHeight);
-    // _ctx.drawImage(canvas,0,0);
-}
 </script>
 
 <style scoped>
@@ -845,7 +645,6 @@ const start=async()=>{
     background-color: white;
     position: absolute;
     left: 0px;
-    /* top: 0px; */
     z-index: 3;
     border-radius: 50%;
     opacity: 0;
